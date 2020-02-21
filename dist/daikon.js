@@ -18876,21 +18876,9 @@ daikon.Image.prototype.decompress = function () {
         numFrames = this.getNumberOfFrames();
 
         if (this.isCompressedJPEGLossless()) {
-            jpegs = this.getJpegs();
-
-            for (ctr = 0; ctr < jpegs.length; ctr+=1) {
-                decoder = new jpeg.lossless.Decoder();
-                temp = decoder.decode(jpegs[ctr]);
-                numComponents = decoder.numComp;
-
-                if (decompressed === null) {
-                    decompressed = new DataView(new ArrayBuffer(frameSize * numFrames * numComponents));
-                }
-
-                (new Uint8Array(decompressed.buffer)).set(new Uint8Array(temp.buffer), (ctr * frameSize * numComponents));
-                temp = null;
-            }
-
+            var buffer = this.getPixelData().value.buffer;
+            decompressed = this.decompressJPEG(new DataView(buffer));
+            console.log(Date.now());
             this.tags[daikon.Tag.createId(daikon.Tag.TAG_PIXEL_DATA[0], daikon.Tag.TAG_PIXEL_DATA[1])].value = decompressed;
         } else if (this.isCompressedJPEGBaseline()) {
             jpegs = this.getJpegs();
