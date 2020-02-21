@@ -253,10 +253,21 @@ daikon.Parser.prototype.getNextTag = function (data, offset, testForTag) {
         || ((group === daikon.Tag.TAG_PALETTE_GREEN[0]) && (element === daikon.Tag.TAG_PALETTE_GREEN[1]));
 
     if ((vr === 'SQ') || (!isPixelData && !this.encapsulation && (daikon.Parser.DATA_VRS.indexOf(vr) !== -1))) {
-        value = this.parseSublist(data, offset, length, vr !== 'SQ');
+        try {
+            value = this.parseSublist(data, offset, length, vr !== 'SQ');
 
-        if (length === daikon.Parser.UNDEFINED_LENGTH) {
-            length = value[value.length - 1].offsetEnd - offset;
+            if (length === daikon.Parser.UNDEFINED_LENGTH) {
+                length = value[value.length - 1].offsetEnd - offset;
+            }
+        } catch (e) {
+            if ((length > 0) && !testForTag) {
+                if (length === daikon.Parser.UNDEFINED_LENGTH) {
+                    if (isPixelData) {
+                        length = (data.byteLength - offset);
+                    }
+                }
+                value = data.buffer.slice(offset, offset + length);
+            }
         }
     } else if ((length > 0) && !testForTag) {
         if (length === daikon.Parser.UNDEFINED_LENGTH) {
