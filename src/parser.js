@@ -247,7 +247,10 @@ daikon.Parser.prototype.getNextTag = function (data, offset, testForTag) {
 
     offsetValue = offset;
 
-    var isPixelData = ((group === daikon.Tag.TAG_PIXEL_DATA[0]) && (element === daikon.Tag.TAG_PIXEL_DATA[1]));
+    var isPixelData = ((group === daikon.Tag.TAG_PIXEL_DATA[0]) && (element === daikon.Tag.TAG_PIXEL_DATA[1]))
+        || ((group === daikon.Tag.TAG_PALETTE_RED[0]) && (element === daikon.Tag.TAG_PALETTE_RED[1]))
+        || ((group === daikon.Tag.TAG_PALETTE_BLUE[0]) && (element === daikon.Tag.TAG_PALETTE_BLUE[1]))
+        || ((group === daikon.Tag.TAG_PALETTE_GREEN[0]) && (element === daikon.Tag.TAG_PALETTE_GREEN[1]));
 
     if ((vr === 'SQ') || (!isPixelData && !this.encapsulation && (daikon.Parser.DATA_VRS.indexOf(vr) !== -1))) {
         value = this.parseSublist(data, offset, length, vr !== 'SQ');
