@@ -19,7 +19,7 @@
   "scripts": {
     "test": "mocha --timeout 0 tests",
     "build": "rm -rf build && mkdir build && node ./node_modules/browserify/bin/cmd.js --standalone daikon ./src/main.js -o ./build/daikon.js && node ./node_modules/uglify-js/bin/uglifyjs build/daikon.js -o build/daikon-min.js",
-    "release": "rm release/current/*.js && cp build/*.js release/current/. && cp -r build dist",
+    "release": "rm -rf release/current/*.js && cp build/*.js release/current/. && cp -r build dist",
     "doc": "rm -rf build; mkdir build; ./node_modules/.bin/jsdoc2md src/*.js > build/docs.md"
   },
   "repository": {

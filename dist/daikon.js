@@ -18743,7 +18743,7 @@ daikon.Image.prototype.getInterpretedData = function (asArray, asObject, frameIn
         var originalGetWord = getWord;
         getWord = function(offset, endian) {
             var val = originalGetWord(offset, endian);
-            return val > maxVal ? complement - val : val;
+            return val > maxVal ? val - complement : val;
         }
 
     } else if (datatype === daikon.Image.BYTE_TYPE_INTEGER_UNSIGNED) {
