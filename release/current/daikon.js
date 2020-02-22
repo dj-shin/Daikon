@@ -18736,6 +18736,16 @@ daikon.Image.prototype.getInterpretedData = function (asArray, asObject, frameIn
         } else if (numBytes === 2) {
             getWord = dataView.getInt16.bind(dataView)
         }
+        // fit data into correct type
+        var complement = Math.pow(2, this.getBitsStored());
+        var maxVal = complement / 2 - 1;
+
+        var originalGetWord = getWord;
+        getWord = function(offset, endian) {
+            var val = originalGetWord(offset, endian);
+            return val > maxVal ? complement - val : val;
+        }
+
     } else if (datatype === daikon.Image.BYTE_TYPE_INTEGER_UNSIGNED) {
         if (numBytes === 1) {
             getWord = dataView.getUint8.bind(dataView)
@@ -18743,7 +18753,7 @@ daikon.Image.prototype.getInterpretedData = function (asArray, asObject, frameIn
             getWord = dataView.getUint16.bind(dataView)
         }
     }
-    
+
     // invert pixel values if INVERTED xor MONOCHROME1
     var invert = daikon.Image.getSingleValueSafely(this.getTag(daikon.Tag.TAG_LUT_SHAPE[0], daikon.Tag.TAG_LUT_SHAPE[1]), 0) === "INVERSE";
     invert = !invert && this.getPhotometricInterpretation() === "MONOCHROME1";
@@ -20200,10 +20210,21 @@ daikon.Parser.prototype.getNextTag = function (data, offset, testForTag) {
         || ((group === daikon.Tag.TAG_PALETTE_GREEN[0]) && (element === daikon.Tag.TAG_PALETTE_GREEN[1]));
 
     if ((vr === 'SQ') || (!isPixelData && !this.encapsulation && (daikon.Parser.DATA_VRS.indexOf(vr) !== -1))) {
-        value = this.parseSublist(data, offset, length, vr !== 'SQ');
+        try {
+            value = this.parseSublist(data, offset, length, vr !== 'SQ');
 
-        if (length === daikon.Parser.UNDEFINED_LENGTH) {
-            length = value[value.length - 1].offsetEnd - offset;
+            if (length === daikon.Parser.UNDEFINED_LENGTH) {
+                length = value[value.length - 1].offsetEnd - offset;
+            }
+        } catch (e) {
+            if ((length > 0) && !testForTag) {
+                if (length === daikon.Parser.UNDEFINED_LENGTH) {
+                    if (isPixelData) {
+                        length = (data.byteLength - offset);
+                    }
+                }
+                value = data.buffer.slice(offset, offset + length);
+            }
         }
     } else if ((length > 0) && !testForTag) {
         if (length === daikon.Parser.UNDEFINED_LENGTH) {
