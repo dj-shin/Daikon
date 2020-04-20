@@ -18754,7 +18754,12 @@ daikon.Image.prototype.getInterpretedData = function (asArray, asObject, frameIn
         }
     }
 
+    /**
+     * Invert should not be applied in interpretation phase,
+     * but in the final rendering phase
+     */
     // invert pixel values if INVERTED xor MONOCHROME1
+    /*
     var invert = daikon.Image.getSingleValueSafely(this.getTag(daikon.Tag.TAG_LUT_SHAPE[0], daikon.Tag.TAG_LUT_SHAPE[1]), 0) === "INVERSE";
     invert = !invert && this.getPhotometricInterpretation() === "MONOCHROME1";
     if (invert) {
@@ -18770,6 +18775,7 @@ daikon.Image.prototype.getInterpretedData = function (asArray, asObject, frameIn
             return Math.min(maxVal, Math.max(minVal, val)); 
         }
     }
+    */
 
     for (ctr = offset, dataCtr = 0; dataCtr < numElements; ctr++, dataCtr++) {
         rawValue = getWord(ctr * numBytes, littleEndian);
