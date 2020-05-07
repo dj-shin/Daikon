@@ -250,7 +250,8 @@ daikon.Parser.prototype.getNextTag = function (data, offset, testForTag) {
     var isPixelData = ((group === daikon.Tag.TAG_PIXEL_DATA[0]) && (element === daikon.Tag.TAG_PIXEL_DATA[1]))
         || ((group === daikon.Tag.TAG_PALETTE_RED[0]) && (element === daikon.Tag.TAG_PALETTE_RED[1]))
         || ((group === daikon.Tag.TAG_PALETTE_BLUE[0]) && (element === daikon.Tag.TAG_PALETTE_BLUE[1]))
-        || ((group === daikon.Tag.TAG_PALETTE_GREEN[0]) && (element === daikon.Tag.TAG_PALETTE_GREEN[1]));
+        || ((group === daikon.Tag.TAG_PALETTE_GREEN[0]) && (element === daikon.Tag.TAG_PALETTE_GREEN[1]))
+        || ((group >= 0x6000 && group <= 0x601E) && (element === 0x3000));
 
     if ((vr === 'SQ') || (!isPixelData && !this.encapsulation && (daikon.Parser.DATA_VRS.indexOf(vr) !== -1))) {
         try {
