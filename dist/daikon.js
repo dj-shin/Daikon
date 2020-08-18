@@ -18704,7 +18704,7 @@ daikon.Image.prototype.getRawData = function () {
  */
 daikon.Image.prototype.getInterpretedData = function (asArray, asObject, frameIndex) {
     var datatype, numBytes, numElements, dataView, data, ctr, mask, slope, intercept, min, max, value, minIndex,
-        maxIndex, littleEndian, rawValue, rawData, allFrames, elementsPerFrame, totalElements, offset, dataCtr;
+        maxIndex, littleEndian, rawValue, rawData, allFrames, elementsPerFrame, totalElements, offset, dataCtr, tmp;
     allFrames = arguments.length < 3;
     mask = daikon.Utils.createBitMask(this.getBitsAllocated() / 8, this.getBitsStored(),
         this.getDataType() === daikon.Image.BYTE_TYPE_INTEGER_UNSIGNED);
@@ -18726,15 +18726,15 @@ daikon.Image.prototype.getInterpretedData = function (asArray, asObject, frameIn
 
     if (asArray) {
         data = new Array(numElements);
-    } else {
-        data = new Float32Array(numElements);
     }
     var getWord;
     if (datatype === daikon.Image.BYTE_TYPE_INTEGER) {
         if (numBytes === 1) {
             getWord = dataView.getInt8.bind(dataView)
+            data = new Int8Array(numElements);
         } else if (numBytes === 2) {
             getWord = dataView.getInt16.bind(dataView)
+            data = new Int16Array(numElements);
         }
         // fit data into correct type
         var complement = Math.pow(2, this.getBitsStored());
@@ -18749,8 +18749,10 @@ daikon.Image.prototype.getInterpretedData = function (asArray, asObject, frameIn
     } else if (datatype === daikon.Image.BYTE_TYPE_INTEGER_UNSIGNED) {
         if (numBytes === 1) {
             getWord = dataView.getUint8.bind(dataView)
+            data = new Uint8Array(numElements);
         } else if (numBytes === 2) {
             getWord = dataView.getUint16.bind(dataView)
+            data = new Uint16Array(numElements);
         }
     }
 
@@ -18780,7 +18782,8 @@ daikon.Image.prototype.getInterpretedData = function (asArray, asObject, frameIn
     for (ctr = offset, dataCtr = 0; dataCtr < numElements; ctr++, dataCtr++) {
         rawValue = getWord(ctr * numBytes, littleEndian);
 
-        value = ((rawValue & mask) * slope) + intercept;
+        // value = ((rawValue & mask) * slope) + intercept;
+        value = rawValue & mask;
         data[dataCtr] = value;
 
         if (value < min) {
@@ -18793,10 +18796,21 @@ daikon.Image.prototype.getInterpretedData = function (asArray, asObject, frameIn
             maxIndex = dataCtr;
         }
     }
+    min = min * slope + intercept;
+    max = max * slope + intercept;
+    if (min > max) {    // negative slope
+        tmp = min;
+        min = max;
+        max = tmp;
+
+        tmp = minIndex;
+        minIndex = maxIndex;
+        maxIndex = tmp;
+    }
 
     if (asObject) {
         return {data: data, min: min, minIndex: minIndex, max: max, maxIndex: maxIndex, numCols: this.getCols(),
-            numRows: this.getRows()};
+            numRows: this.getRows(), slope: slope, intercept: intercept};
     }
     
     return data;
