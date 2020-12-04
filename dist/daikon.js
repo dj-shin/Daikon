@@ -18625,8 +18625,10 @@ daikon.Image.prototype.getTR = function () {
 
 
 daikon.Image.prototype.putTag = function (tag) {
-    this.tags[tag.id] = tag;
-    this.putFlattenedTag(this.tagsFlat, tag);
+    if (!(tag.id in this.tags)) {
+        this.tags[tag.id] = tag;
+        this.putFlattenedTag(this.tagsFlat, tag);
+    }
 };
 
 
@@ -18810,7 +18812,7 @@ daikon.Image.prototype.getInterpretedData = function (asArray, asObject, frameIn
 
     if (asObject) {
         return {data: data, min: min, minIndex: minIndex, max: max, maxIndex: maxIndex, numCols: this.getCols(),
-            numRows: this.getRows(), slope: slope, intercept: intercept};
+            numRows: this.getRows()};
     }
     
     return data;
@@ -20010,6 +20012,7 @@ daikon.Parser = daikon.Parser || function () {
     this.encapsulation = false;
     this.level = 0;
     this.error = null;
+    this.transformSyntaxFound = false;
 };
 
 
@@ -20260,7 +20263,8 @@ daikon.Parser.prototype.getNextTag = function (data, offset, testForTag) {
     offset += length;
     tag = new daikon.Tag(group, element, vr, value, offsetStart, offsetValue, offset, this.littleEndian);
 
-    if (tag.isTransformSyntax()) {
+    if (tag.isTransformSyntax() && !this.transformSyntaxFound) {
+        this.transformSyntaxFound = true;
         if (tag.value[0] === daikon.Parser.TRANSFER_SYNTAX_IMPLICIT_LITTLE) {
             this.explicit = false;
             this.littleEndian = true;

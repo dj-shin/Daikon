@@ -494,8 +494,10 @@ daikon.Image.prototype.getTR = function () {
 
 
 daikon.Image.prototype.putTag = function (tag) {
-    this.tags[tag.id] = tag;
-    this.putFlattenedTag(this.tagsFlat, tag);
+    if (!(tag.id in this.tags)) {
+        this.tags[tag.id] = tag;
+        this.putFlattenedTag(this.tagsFlat, tag);
+    }
 };
 
 

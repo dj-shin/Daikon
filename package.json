@@ -1,6 +1,6 @@
 {
   "name": "daikon-hh",
-  "version": "1.2.44",
+  "version": "1.2.45",
   "description": "A JavaScript DICOM reader.",
   "main": "src/main.js",
   "directories": {
