@@ -248,13 +248,29 @@ daikon.Parser.prototype.getNextTag = function (data, offset, testForTag) {
 
     offsetValue = offset;
 
-    var isPixelData = ((group === daikon.Tag.TAG_PIXEL_DATA[0]) && (element === daikon.Tag.TAG_PIXEL_DATA[1]))
+    var isPixelData = this.pixelDataSequence > 0
+        || ((group === daikon.Tag.TAG_PIXEL_DATA[0]) && (element === daikon.Tag.TAG_PIXEL_DATA[1]))
         || ((group === daikon.Tag.TAG_PALETTE_RED[0]) && (element === daikon.Tag.TAG_PALETTE_RED[1]))
         || ((group === daikon.Tag.TAG_PALETTE_BLUE[0]) && (element === daikon.Tag.TAG_PALETTE_BLUE[1]))
         || ((group === daikon.Tag.TAG_PALETTE_GREEN[0]) && (element === daikon.Tag.TAG_PALETTE_GREEN[1]))
         || ((group >= 0x6000 && group <= 0x601E) && (element === 0x3000));
 
-    if ((vr === 'SQ') || (!isPixelData && !this.encapsulation && (daikon.Parser.DATA_VRS.indexOf(vr) !== -1))) {
+    function isActuallySequence(data, offset, little) {
+        var group = data.getUint16(offset, little);
+        offset += 2;
+        var element = data.getUint16(offset, little);
+        return (group === daikon.Tag.TAG_SUBLIST_ITEM[0]) && (element === daikon.Tag.TAG_SUBLIST_ITEM[1]);
+    }
+    var isEncapsulatedPixel = isPixelData && isActuallySequence(data, offset, this.littleEndian);
+    var isSequence = (vr === 'SQ') || isEncapsulatedPixel;
+
+    if (isSequence || (!isPixelData && !this.encapsulation && (daikon.Parser.DATA_VRS.indexOf(vr) !== -1))) {
+        if (isPixelData) {
+            if (!this.pixelDataSequence) {
+                this.pixelDataSequence = 0;
+            }
+            this.pixelDataSequence++;
+        }
         try {
             value = this.parseSublist(data, offset, length, vr !== 'SQ');
 
@@ -271,6 +287,10 @@ daikon.Parser.prototype.getNextTag = function (data, offset, testForTag) {
                 value = data.buffer.slice(offset, offset + length);
             }
         }
+        if (isEncapsulatedPixel) {
+            value = data.buffer.slice(offset, offset + length);
+        }
+        this.pixelDataSequence--;
     } else if ((length > 0) && !testForTag) {
         if (length === daikon.Parser.UNDEFINED_LENGTH) {
             if (isPixelData) {

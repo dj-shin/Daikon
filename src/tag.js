@@ -523,7 +523,7 @@ daikon.Tag.convertPrivateValue = function (group, element, rawData) {
 
 
 daikon.Tag.convertValue = function (vr, rawData, littleEndian) {
-    var data = null;
+    var data = rawData;
 
     if (vr === 'AE') {
         data = daikon.Tag.getSingleStringValue(rawData, daikon.Tag.VR_AE_MAX_LENGTH);
